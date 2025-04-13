@@ -1,35 +1,172 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from 'react';
+import './App.css';
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+  const [expenses, setExpenses] = useState([
+    { id: 1, name: 'KFC Meal', description: 'Spicy chicken', category: 'food', amount: 1500, date: '2025-04-01' },
+    { id: 2, name: 'Buy shoes', description: 'Add to my shoe collection', category: 'personal', amount: 5000, date: '2025-04-03' },
+  ]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortField, setSortField] = useState(''); 
+  const [sortOrder, setSortOrder] = useState('asc'); 
+
+  const [newExpense, setNewExpense] = useState({
+    name: '',
+    description: '',
+    category: '',
+    amount: '',
+    date: '',
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewExpense({ ...newExpense, [name]: value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const expense = {
+      id: expenses.length + 1,
+      ...newExpense,
+    };
+    setExpenses([...expenses, expense]);
+    setNewExpense({ name: '', description: '', category: '', amount: '', date: '' });
+  };
+
+  const handleDelete = (id) => {
+    setExpenses(expenses.filter((expense) => expense.id !== id));
+  };
+
+  
+  const handleSort = (field) => {
+    
+    const order = sortField === field && sortOrder === 'asc' ? 'desc' : 'asc';
+    setSortField(field);
+    setSortOrder(order);
+
+    
+    const sortedExpenses = [...expenses].sort((a, b) => {
+      const valueA = a[field].toLowerCase();
+      const valueB = b[field].toLowerCase();
+      if (order === 'asc') {
+        return valueA > valueB ? 1 : -1;
+      }
+      return valueA < valueB ? 1 : -1;
+    });
+    setExpenses(sortedExpenses);
+  };
+
+  const filteredExpenses = expenses.filter(
+    (expense) =>
+      expense.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      expense.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="app">
+      <h1>Expense Tracker</h1>
+      <div className="container">
+        <div className="form-container">
+          <h2>Add Expense</h2>
+          <form onSubmit={handleSubmit}>
+            <input
+              type="text"
+              name="name"
+              placeholder="Enter expense name"
+              value={newExpense.name}
+              onChange={handleInputChange}
+              required
+            />
+            <input
+              type="text"
+              name="description"
+              placeholder="Enter expense description"
+              value={newExpense.description}
+              onChange={handleInputChange}
+              required
+            />
+            <select
+              name="category"
+              value={newExpense.category}
+              onChange={handleInputChange}
+              required
+            >
+              <option value="">Select category</option>
+              <option value="food">Food</option>
+              <option value="personal">Personal</option>
+              <option value="utilities">Utilities</option>
+            </select>
+            <input
+              type="number"
+              name="amount"
+              placeholder="Enter amount"
+              value={newExpense.amount}
+              onChange={handleInputChange}
+              required
+            />
+            <input
+              type="date"
+              name="date"
+              value={newExpense.date}
+              onChange={handleInputChange}
+              required
+            />
+            <button type="submit">SUBMIT</button>
+          </form>
+        </div>
+        <div className="table-container">
+          <input
+            type="text"
+            placeholder="Search expenses"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-bar"
+          />
+          <table>
+            <thead>
+              <tr>
+                <th>Expense Name</th>
+                <th onClick={() => handleSort('description')}>
+                  Description{' '}
+                  {sortField === 'description' && (
+                    <span>{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                  )}
+                </th>
+                <th onClick={() => handleSort('category')}>
+                  Category{' '}
+                  {sortField === 'category' && (
+                    <span>{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                  )}
+                </th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredExpenses.map((expense) => (
+                <tr key={expense.id}>
+                  <td>{expense.name}</td>
+                  <td>{expense.description}</td>
+                  <td>{expense.category}</td>
+                  <td>{expense.amount}</td>
+                  <td>{expense.date}</td>
+                  <td>
+                    <button
+                      className="delete-btn"
+                      onClick={() => handleDelete(expense.id)}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    </div>
+  );
+};
 
-export default App
+export default App;
